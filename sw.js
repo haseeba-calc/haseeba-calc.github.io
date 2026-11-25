@@ -1,5 +1,5 @@
 const CACHE = 'haseeba-v1';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const ASSETS = ['./', './index.html', './manifest.json', './4-icon-192.png', './5-icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
