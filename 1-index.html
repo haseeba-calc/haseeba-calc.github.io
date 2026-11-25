@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a09">
+<title>آلة حاسبة</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(120% 80% at 50% -10%,#2a2113 0%,#0f0d0a 55%,#070605 100%);
+  color:#f5ead6;
+  font-family:"SF Pro Display","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Roboto,"Noto Sans Arabic",sans-serif;
+  display:flex;justify-content:center;align-items:center;
+  user-select:none;-webkit-user-select:none;overflow:hidden;
+}
+.calc{
+  width:100%;max-width:420px;height:100%;max-height:860px;
+  display:flex;flex-direction:column;
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
+  direction:ltr;
+}
+.screen{
+  flex:1 1 auto;min-height:150px;
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;
+  padding:10px 10px 18px;gap:6px;overflow:hidden;
+}
+.history{
+  font-size:18px;color:#8f7d58;min-height:24px;max-width:100%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:.5px;transition:opacity .3s,transform .3s;
+}
+.history.flash{animation:slide .35s ease}
+@keyframes slide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.display{
+  font-weight:200;font-size:76px;line-height:1.05;color:#fff4dc;
+  max-width:100%;white-space:nowrap;cursor:pointer;
+  transition:font-size .15s ease,color .25s ease;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 30px rgba(230,170,60,.18);
+}
+.display.pop{animation:pop .22s ease}
+@keyframes pop{0%{opacity:.4;transform:scale(.97)}100%{opacity:1;transform:none}}
+.display.err{color:#ff8a6b;font-size:44px}
+.toast{
+  position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translate(-50%,-20px);
+  background:#1c1710;border:1px solid #6b5426;color:#f0c46a;font-size:13px;
+  padding:7px 16px;border-radius:20px;opacity:0;pointer-events:none;
+  transition:all .3s ease;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+button{
+  appearance:none;border:0;outline:0;cursor:pointer;
+  aspect-ratio:1/0.82;border-radius:26px;
+  font:inherit;font-size:30px;font-weight:400;color:#f5ead6;
+  background:linear-gradient(160deg,#26221b,#17140f);
+  box-shadow:inset 0 1px 0 rgba(255,235,190,.07),0 4px 10px rgba(0,0,0,.5);
+  transition:transform .09s ease,filter .2s ease,box-shadow .2s ease;
+  touch-action:manipulation;position:relative;overflow:hidden;
+}
+button:active,button.down{transform:scale(.93);filter:brightness(1.35);box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
+button.fn{color:#e9b84f;background:linear-gradient(160deg,#2e281b,#1a160f);font-size:26px}
+button.op{
+  color:#1a1206;background:linear-gradient(160deg,#f7cf7a,#d99a2b);
+  font-size:34px;font-weight:500;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 4px 14px rgba(217,154,43,.25);
+}
+button.op.active{background:linear-gradient(160deg,#fff,#f3dca5);box-shadow:0 0 18px rgba(247,207,122,.6)}
+button.eq{background:linear-gradient(160deg,#ffdc8c,#e8a52e)}
+button.zero{grid-column:span 2;aspect-ratio:auto;text-align:left;padding-left:12%}
+@media (max-height:700px){.display{font-size:60px}button{font-size:26px;aspect-ratio:1/0.7}}
+</style>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="آلة حاسبة">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f7cf7a'/%3E%3Cstop offset='1' stop-color='%23d99a2b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' fill='%230f0d0a'/%3E%3Crect x='38' y='30' width='104' height='120' rx='20' fill='none' stroke='url(%23g)' stroke-width='6'/%3E%3Crect x='52' y='44' width='76' height='26' rx='8' fill='url(%23g)'/%3E%3Cg fill='url(%23g)'%3E%3Ccircle cx='62' cy='95' r='8'/%3E%3Ccircle cx='90' cy='95' r='8'/%3E%3Ccircle cx='118' cy='95' r='8'/%3E%3Ccircle cx='62' cy='125' r='8'/%3E%3Ccircle cx='90' cy='125' r='8'/%3E%3Ccircle cx='118' cy='125' r='8'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f7cf7a'/%3E%3Cstop offset='1' stop-color='%23d99a2b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' fill='%230f0d0a'/%3E%3Crect x='38' y='30' width='104' height='120' rx='20' fill='none' stroke='url(%23g)' stroke-width='6'/%3E%3Crect x='52' y='44' width='76' height='26' rx='8' fill='url(%23g)'/%3E%3Cg fill='url(%23g)'%3E%3Ccircle cx='62' cy='95' r='8'/%3E%3Ccircle cx='90' cy='95' r='8'/%3E%3Ccircle cx='118' cy='95' r='8'/%3E%3Ccircle cx='62' cy='125' r='8'/%3E%3Ccircle cx='90' cy='125' r='8'/%3E%3Ccircle cx='118' cy='125' r='8'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+.hint{display:flex;align-items:center;justify-content:center;gap:10px;direction:rtl;margin-top:10px;font-size:12px;color:#8f7d58;text-align:center}
+.hint button{all:unset;cursor:pointer;color:#e9b84f;font-size:16px;padding:2px 8px;aspect-ratio:auto}
+.hint.gone{display:none}
+</style>
+</head>
+<body>
+<div class="calc" role="application" aria-label="آلة حاسبة">
+  <div class="screen">
+    <div class="history" id="hist"></div>
+    <div class="display" id="disp" title="انسخ">0</div>
+  </div>
+  <div class="keys" id="keys">
+    <button class="fn" data-k="C" id="clr">C</button>
+    <button class="fn" data-k="±">±</button>
+    <button class="fn" data-k="%">%</button>
+    <button class="op" data-k="÷">÷</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+    <button class="op" data-k="×">×</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <button class="op" data-k="−">−</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+    <button class="op" data-k="+">+</button>
+    <button class="zero" data-k="0">0</button>
+    <button data-k=".">.</button>
+    <button class="op eq" data-k="=">=</button>
+    <button class="fn" data-k="⌫" style="grid-column:1/-1;aspect-ratio:auto;height:46px;font-size:22px">⌫</button>
+  </div>
+  <div class="hint gone" id="hint"><span>من قايمة ⋮ اختار: تثبيت التطبيق</span><button id="hx" aria-label="إغلاق">✕</button></div>
+</div>
+<div class="toast" id="toast">تم النسخ</div>
+<script>
+(function(){
+  var disp=document.getElementById('disp'),hist=document.getElementById('hist'),
+      toast=document.getElementById('toast'),clr=document.getElementById('clr');
+  var tokens=[];      // numbers (Number) and operators (string)
+  var cur='0';        // current entry string
+  var fresh=true;     // cur is a result / not being typed
+  var error=false;
+  var OPS={'+':1,'−':1,'×':2,'÷':2};
+
+  function fmt(n){
+    if(!isFinite(n))return 'خطأ';
+    if(n===0)return '0';
+    var a=Math.abs(n),s;
+    if(a>=1e15||a<1e-9){s=n.toExponential(8).replace(/\.?0+e/,'e').replace('e+','e');return s;}
+    s=String(parseFloat(n.toPrecision(12)));
+    if(s.indexOf('e')>-1)s=n.toFixed(10).replace(/\.?0+$/,'');
+    return s;
+  }
+  function group(s){
+    if(s==='خطأ'||s.indexOf('e')>-1)return s;
+    var neg=s[0]==='-';if(neg)s=s.slice(1);
+    var p=s.split('.');
+    p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    return (neg?'-':'')+p.join('.');
+  }
+  function exprText(){
+    return tokens.map(function(t){return typeof t==='number'?group(fmt(t)):t}).join(' ');
+  }
+  function evaluate(t){
+    // precedence: × ÷ before + −
+    var out=[t[0]],i;
+    for(i=1;i<t.length;i+=2){
+      var op=t[i],v=t[i+1];
+      if(op==='×')out[out.length-1]*=v;
+      else if(op==='÷'){
+        if(v===0)throw new Error('div0');
+        out[out.length-1]/=v;
+      } else {out.push(op);out.push(v);}
+    }
+    var r=out[0];
+    for(i=1;i<out.length;i+=2)r=out[i]==='+'?r+out[i+1]:r-out[i+1];
+    return r;
+  }
+  function render(animate){
+    var txt;
+    if(error)txt='خطأ';
+    else{
+      var raw=cur;
+      txt=group(raw.replace(/\.$/,'.'));
+      if(raw.slice(-1)==='.')txt=group(raw.slice(0,-1))+'.';
+    }
+    disp.textContent=txt;
+    disp.classList.toggle('err',error);hist.dataset.msg=error?'لا يمكن القسمة على صفر':'';
+    var len=txt.length,size=error?44:(len>14?34:len>11?44:len>8?56:76);
+    if(window.innerHeight<700&&!error)size=Math.round(size*.8);
+    disp.style.fontSize=size+'px';
+    if(animate){disp.classList.remove('pop');void disp.offsetWidth;disp.classList.add('pop');}
+    
+    hist.textContent=error?'لا يمكن القسمة على صفر':tokens.length&&typeof tokens[tokens.length-1]==='string'?exprText():(hist.dataset.last||'');
+    document.querySelectorAll('.op:not(.eq)').forEach(function(b){
+      b.classList.toggle('active',fresh&&tokens.length>0&&tokens[tokens.length-1]===b.dataset.k);
+    });
+    clr.textContent=(cur==='0'&&!tokens.length&&!error)?'C':(fresh&&!tokens.length?'C':'C');
+  }
+  function reset(){tokens=[];cur='0';fresh=true;error=false;hist.dataset.last='';}
+  function num(){return parseFloat(cur)}
+
+  function press(k){
+    if(error&&k!=='C'){reset();}
+    if(/^\d$/.test(k)){
+      if(fresh){
+        if(tokens.length&&typeof tokens[tokens.length-1]==='number'){tokens=[];}
+        cur=k;fresh=false;
+      } else if(cur==='0')cur=k;
+      else if(cur==='-0')cur='-'+k;
+      else if(cur.replace(/[-.]/g,'').length<15)cur+=k;
+    }
+    else if(k==='.'){
+      if(fresh){if(tokens.length&&typeof tokens[tokens.length-1]==='number')tokens=[];cur='0.';fresh=false;}
+      else if(cur.indexOf('.')<0)cur+='.';
+    }
+    else if(OPS[k]){
+      if(fresh&&tokens.length&&typeof tokens[tokens.length-1]==='string'){
+        tokens[tokens.length-1]=k; // replace operator
+      } else {
+        if(fresh&&tokens.length&&typeof tokens[tokens.length-1]==='number')tokens=[tokens[0]];
+        tokens.push(num());tokens.push(k);fresh=true;
+      }
+    }
+    else if(k==='='){
+      if(!tokens.length){render(false);return;}
+      var t=tokens.slice();
+      if(typeof t[t.length-1]==='string')t.push(num());
+      else if(fresh){render(false);return;}
+      else t.push(num());
+      try{
+        var r=evaluate(t);
+        if(!isFinite(r))throw new Error('x');
+        hist.dataset.last=t.map(function(x){return typeof x==='number'?group(fmt(x)):x}).join(' ')+' =';
+        cur=fmt(r);tokens=[r];fresh=true;
+        hist.classList.remove('flash');void hist.offsetWidth;hist.classList.add('flash');
+        render(true);return;
+      }catch(e){
+        error=true;tokens=[];cur='0';fresh=true;hist.dataset.last='';
+        if(navigator.vibrate)navigator.vibrate(60);
+        render(true);return;
+      }
+    }
+    else if(k==='C'){reset();}
+    else if(k==='⌫'){
+      if(fresh){ if(tokens.length===1&&typeof tokens[0]==='number'){} }
+      else{
+        cur=cur.slice(0,-1);
+        if(cur===''||cur==='-')cur='0';
+      }
+    }
+    else if(k==='±'){
+      if(cur!=='0'||!fresh){
+        cur=cur[0]==='-'?cur.slice(1):'-'+cur;
+        if(fresh&&tokens.length===1&&typeof tokens[0]==='number')tokens=[-tokens[0]];
+      } else if(!fresh){cur='-0';}
+    }
+    else if(k==='%'){
+      var v=num(),n;
+      var L=tokens.length;
+      if(L>=2&&(tokens[L-1]==='+'||tokens[L-1]==='−')&&!(fresh&&false)){
+        // percent of the preceding value: 200 + 10% -> 200 + 20
+        var base=typeof tokens[L-2]==='number'?tokens[L-2]:0;
+        if(L>2){try{base=evaluate(tokens.slice(0,L-1));}catch(e){}}
+        n=base*v/100;
+      } else n=v/100;
+      cur=fmt(n);fresh=false;
+    }
+    render(true);
+  }
+
+  document.getElementById('keys').addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;
+    press(b.dataset.k);
+    if(navigator.vibrate)navigator.vibrate(8);
+  });
+  document.addEventListener('keydown',function(e){
+    var m={'*':'×','/':'÷','-':'−','Enter':'=','Backspace':'⌫','Escape':'C','Delete':'C',',':'.'};
+    var k=m[e.key]||e.key;
+    if(/^[\d.+=%]$/.test(k)||'×÷−⌫C'.indexOf(k)>-1&&k.length===1){e.preventDefault();press(k);}
+  });
+  disp.addEventListener('click',function(){
+    if(error)return;
+    var txt=cur;
+    var done=function(){toast.classList.add('show');setTimeout(function(){toast.classList.remove('show')},1200)};
+    try{
+      if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).then(done,fallback);}
+      else fallback();
+    }catch(e){fallback();}
+    function fallback(){
+      var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(e){}
+      document.body.removeChild(ta);
+    }
+  });
+  (function(){
+    var h=document.getElementById('hint'),sa=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches),seen=false;
+    try{seen=localStorage.getItem('hintx')==='1'}catch(e){}
+    if(!sa&&!seen)h.classList.remove('gone');
+    document.getElementById('hx').onclick=function(){h.classList.add('gone');try{localStorage.setItem('hintx','1')}catch(e){}};
+  })();
+  window.addEventListener('resize',function(){render(false)});
+  render(false);
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
+}
+</script>
+</body>
+</html>
+
